@@ -26,7 +26,7 @@ min_pos = -10
 # time period = 7
 # Ku ~ 2
 KP = 2/5
-KI = 4/35
+KI = 2/35
 KD = 14/15
 
 # Ziegler nicholson method:
@@ -133,7 +133,7 @@ class Simulation:
         self.position = []
     def cycle(self):
         i = 0
-        while i < 300:
+        while i < 30:
             i += dt
             rate(50)
             thrust = self.pid.output(self.rocket.get_pos())
