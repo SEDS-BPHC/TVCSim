@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # time step
 
-dt = 0.007
+dt = 0.1
 
 # setpoint
 
@@ -16,19 +16,24 @@ setpoint_line = curve(vector(-10, setpoint, 0), vector(10, setpoint,
 
 # rocket params
 
-initial_velocty = 8
+initial_velocity = 0
 initial_height = -10
 max_thrust = 15  # newtons
 mass = 1  # kg
 g = -9.8
-
+min_pos = -10
 # PID constants
+# time period = 7
+# Ku ~ 2
+KP = 2/5
+KI = 2/35
+KD = 14/15
 
-KP = 0.6
-KI = 0.4
-KD = 0.4
+# Ziegler nicholson method:
+# using the "no overshoot method" https://en.wikipedia.org/wiki/Ziegler%E2%80%93Nichols_method
+# Ziegler–Nichols Tuning Rules for PID, Microstar Laboratories
 
-
+# Tip: decreasing KI to 2/25 yields lesser overshoot, but later start
 class Rocket:
 
     def __init__(self):
@@ -41,7 +46,7 @@ class Rocket:
             opacity=0.6,
             make_trail = True
             )
-        self.velocity = vector(0, initial_velocty, 9)
+        self.velocity = vector(0, initial_velocity, 9)
         self.acc = vector(0, 0, 0)
         self.trail = curve(color=color.white)
 
@@ -59,6 +64,8 @@ class Rocket:
 
     def set_pos(self):
         self.body.pos.y += self.velocity.y * dt
+        if(self.body.pos.y <= min_pos):
+            self.body.pos.y = min_pos
 
     def get_pos(self):
         return self.body.pos.y
@@ -122,19 +129,24 @@ class Simulation:
     def __init__(self):
         self.rocket = Rocket()
         self.pid = PID(KP, KI, KD, setpoint)
-
+        self.timestamps = []
+        self.position = []
     def cycle(self):
         i = 0
-        while True:
+        while i < 30:
             i += dt
-            rate(20)
+            rate(50)
             thrust = self.pid.output(self.rocket.get_pos())
+            self.position.append(self.rocket.get_pos())
+            self.timestamps.append(i)
             self.rocket.set_acc(thrust)
             print(f"acc = {self.rocket.get_acc()}")
             self.rocket.set_vel()
             print(f"vel = {self.rocket.get_vel()}")
             self.rocket.set_pos()
             print(f"pos = {self.rocket.get_pos()}")
+        plt.plot(self.timestamps, self.position)
+        plt.show()
 
 scene.autoscale = False
 
