@@ -5,6 +5,7 @@ from time import sleep
 from math import cos 
 from math import sin 
 from math import pi 
+from math import acos
 import matplotlib.pyplot as plt 
 
 #Time step
@@ -67,7 +68,7 @@ class Rocket(object):
         nose and centre of gravity'''
         self.phi = 0
 
-        def set_acc(self):
+        def set_acc(self,theta,phi):
         	self.acc = vector(thrust*sin((theta+phi)*pi/180)/mass, g + thrust*cos((theta+phi)*pi/180)/mass, 0)
 
         def get_y_acc(self):
@@ -85,7 +86,7 @@ class Rocket(object):
         def get_x_vel(self):
         	return self.velocity.x 
 
-        def set_rot_acc(self):
+        def set_rot_acc(self,phi):
         	self.rot_acc = vector(0, 0, -thrust*sin(phi*pi/180)*radius_of_gyr/moment_of_inertia)
 
         def set_rot_vel(self):
@@ -93,6 +94,17 @@ class Rocket(object):
 
         def set_orientation(self):
         	self.orientation +=  (self.rot_vel.z*dt, self.rot_vel.z*dt, 0)
+        	self.body.axis.x = cos(self.orientation.x)
+        	self.body.axis.y = cos(self.orientation.y)
+        	self.body.axis.z = cos(self.orientation.z) 
+
+        def set_vectoring(self,phi):
+        	self.phi 
+
+        def get_orientation(self):
+        	omega = acos(self.body.axis.x)
+        	theta = omega - pi/2
+        	return theta 
 
         def set_pos(self):
         self.body.pos.y += self.velocity.y * dt
@@ -102,3 +114,54 @@ class Rocket(object):
     	def get_pos(self):
         	return self.body.pos.y
 
+class PID:
+
+    def __init__(
+        self,
+        KP,
+        KI,
+        KD,
+        target
+        ):
+        self.kp = KP
+        self.ki = KI
+        self.kd = KD
+        self.setpoint = target
+        self.error = 0
+        self.integral_error = 0
+        self.derivative_error = 0
+        self.error_last = 0
+        self.kpe = 0
+        self.kde = 0
+        self.kie = 0
+        self.computed_thrust = 0
+
+    def output(self, theta):
+        self.error = theta
+        self.integral_error += self.error * dt
+        self.derivative_error = (self.error - self.error_last) / dt
+        self.error_last = self.error
+
+        self.kpe = self.kp * self.error
+        self.kde = self.kd * self.derivative_error
+        self.kie = self.ki * self.integral_error
+
+        self.computed_phi = self.kpe + self.kie + self.kde
+
+        if self.computed_thrust >= max_thrust:
+            self.computed_thrust = max_thrust
+        elif self.computed_thrust <= 0:
+            self.computed_thrust = 0
+        else:
+            pass
+
+        return self.computed_thrust
+
+    def get_kpe(self):
+        return self.kpe
+
+    def get_kde(self):
+        return self.kde
+
+    def get_kie(self):
+        return self.kie
