@@ -12,7 +12,9 @@ A simulator system for thrust vector controlling
 ### To contribute  
   1. Send PRs to dev branch (compare).  
 
-### Images of the simulation
-
+### Images of the simulation:
+  1. Simulation model
 ![Simulation model](https://github.com/SEDS-BPHC/TVCSim/blob/Tuning/Images/model_3d_simulink.JPG)
+
+  2. Simulation results
 ![Simulation results](https://github.com/SEDS-BPHC/TVCSim/blob/Tuning/Images/control.JPG)
