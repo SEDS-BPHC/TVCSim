@@ -24,7 +24,7 @@ class Actor(nn.Module):
 	def predict_action(self, x):
 		probs = self.forward(x)
 		dist = distributions.Categorical(probs)
-		action = m.sample()
+		action = dist.sample()
 		log_prob = dist.log_prob(action)
 		return action, log_prob
 
@@ -100,8 +100,19 @@ class Agent:
 
 
 class A2CEnv:
-	def __init__(self, num_episodes, max_len):
-		self.env = env.Env()  # the environment takes values of direction of TVC but the agent gives actions which is to
+	def __init__(self, num_episodes):
+		self.env = env.Env(env_type='discrete')  # the environment takes values of direction of TVC but the agent gives actions which is to
 		# rotate the tvc
+		self.num_episodes=num_episodes
+		self.agent = Agent(state_dims=4,action_space=4)
 
-		self.agent = Agent()
+	def sample(self):
+		state=self.env.reset()
+		done=False
+		for x in self.num_episodes:
+			while not done:
+				action=self.agent.predict_action(state)
+				state,reward,done=self.env.action(action)
+
+
+
